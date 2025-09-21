@@ -1,11 +1,15 @@
 // imports
+import { dialog } from "/assets/modules/dialog.js";
+import { randomItem } from "/assets/modules/random.js";
 
 // html elements
 const messageSpace = document.getElementById("messageSpace");
 
 // functions
 function main() {
-    writeMessage("anon", "is this still available?");
+    writeMessage("buyer", randomItem(dialog)).then((userChoice) => {
+        writeMessage("buyer", randomItem(userChoice.buyerResponses));
+    });
 }
 
 function ohNo(message) {
@@ -15,10 +19,17 @@ function ohNo(message) {
 }
 
 function writeMessage(sender, content) {
+    // handle bad arguments
+    if (sender === undefined) ohNo("sender is undefined");
+    if (content === undefined) ohNo("content is undefined");
+    if (content.text === undefined) ohNo("content.text is undefined");
+
     // demo logic
-    messageSpace.innerText = `${sender}: ${content}`;
-    requestUserInput("choice", ["yes", "no"]).then((res) => {
-        alert(res);
+    messageSpace.innerText = `${sender}: ${content.text}`;
+    return new Promise((resolve) => {
+        requestUserInput("choice", content).then((userChoice) => {
+            resolve(userChoice);
+        });
     });
 }
 
@@ -27,17 +38,20 @@ function createMultipleChoice(options) {
     // handle bad arguments
     if (options === undefined) ohNo("no options given");
 
-    if (!Array.isArray(options))
-        ohNo(`expected options to be array but it was ${typeof options}`);
+    if (!(typeof options === "object"))
+        ohNo(`expected options to be object but it was ${typeof options}`);
 
-    if (options.length < 1) ohNo("not enough options given");
+    if (Object.keys(options).length < 1)
+        ohNo(
+            `expected at least 1 option, but got ${Object.keys(options).length}`
+        );
 
     return new Promise((resolve) => {
-        for (let o of options) {
+        for (let o of options.userResponses) {
             const button = document.createElement("button");
-            button.innerText = o;
+            button.innerText = o.text;
             button.addEventListener("click", () => {
-                resolve(button.innerText);
+                resolve(o);
             });
             messageSpace.appendChild(button);
         }

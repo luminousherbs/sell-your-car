@@ -22,7 +22,7 @@ nvm install 22
 serve the content:
 
 ```bash
-node serve.js
+node tools/serve.js
 ```
 
 visit [localhost:8000](http://localhost:8000) in a browser:
