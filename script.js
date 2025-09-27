@@ -1,5 +1,5 @@
 // imports
-import { dialog } from "/assets/modules/dialog.js";
+import { openings, replies } from "/assets/modules/dialog.js";
 import { randomItem } from "/assets/modules/random.js";
 
 // html elements
@@ -7,8 +7,15 @@ const messageSpace = document.getElementById("messageSpace");
 
 // functions
 function main() {
-    writeMessage("buyer", randomItem(dialog)).then((userChoice) => {
-        writeMessage("buyer", randomItem(userChoice.buyerResponses));
+    writeMessage("buyer", randomItem(openings)).then((userChoice) => {
+        // writeMessage("buyer", replies[userChoice]);
+        nextDialog(userChoice);
+    });
+}
+
+function nextDialog(userChoice) {
+    writeMessage("buyer", replies[userChoice]).then((nextUserChoice) => {
+        nextDialog(nextUserChoice);
     });
 }
 
@@ -20,9 +27,9 @@ function ohNo(message) {
 
 function writeMessage(sender, content) {
     // handle bad arguments
-    if (sender === undefined) ohNo("sender is undefined");
-    if (content === undefined) ohNo("content is undefined");
-    if (content.text === undefined) ohNo("content.text is undefined");
+    if (sender === undefined) return ohNo("sender is undefined");
+    if (content === undefined) return ohNo("content is undefined");
+    if (content.text === undefined) return ohNo("content.text is undefined");
 
     // demo logic
     messageSpace.innerText = `${sender}: ${content.text}`;
@@ -36,13 +43,15 @@ function writeMessage(sender, content) {
 function createMultipleChoice(options) {
     //
     // handle bad arguments
-    if (options === undefined) ohNo("no options given");
+    if (options === undefined) return ohNo("no options given");
 
     if (!(typeof options === "object"))
-        ohNo(`expected options to be object but it was ${typeof options}`);
+        return ohNo(
+            `expected options to be object but it was ${typeof options}`
+        );
 
     if (Object.keys(options).length < 1)
-        ohNo(
+        return ohNo(
             `expected at least 1 option, but got ${Object.keys(options).length}`
         );
 
@@ -51,7 +60,7 @@ function createMultipleChoice(options) {
             const button = document.createElement("button");
             button.innerText = o.text;
             button.addEventListener("click", () => {
-                resolve(o);
+                resolve(o.state);
             });
             messageSpace.appendChild(button);
         }
@@ -67,7 +76,7 @@ function requestUserInput(type, options = []) {
                 });
             });
         default:
-            ohNo(`unrecognised input type: ${type}`);
+            return ohNo(`unrecognised input type: ${type}`);
             break;
     }
 }
